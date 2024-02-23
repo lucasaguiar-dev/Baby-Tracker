@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dotenv import load_dotenv
+from flask_cors import CORS
 import os
 
 load_dotenv()
@@ -9,6 +10,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("url_postgresql")
 db = SQLAlchemy(app)
+CORS(app)
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)

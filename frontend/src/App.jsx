@@ -8,7 +8,10 @@ const baseUrl = "http://localhost:5000"
 
 function App() {
   const [description, setDescription] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [eventsList, setEventsList] = useState([]);
+  const [eventId, setEventId] = useState(null)
+
 
   const fetchEvents = async () => {
     const data = await axios.get(`${baseUrl}/events`)
@@ -16,8 +19,12 @@ function App() {
     setEventsList(events);
   }
   
-  const handleChange = e => {
-    setDescription(e.target.value)
+  const handleChange = (e, field) => {
+    if (field === 'edit') {
+      setEditDescription(e.target.value)
+    } else {
+      setDescription(e.target.value) 
+    }
   }
 
   const handleDelete = async (id) => {
@@ -29,13 +36,18 @@ function App() {
       console.error(err.message);
     }
   }
+
+  const toggleEdit = (event) => {
+    setEventId(event.id);
+    setEditDescription(event.description);
+  }
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await axios.post(`${baseUrl}/events`, {description})
-      setEventsList([...eventsList, data.data]);
-      setDescription('');
+      if (editDescription){
+        const data = await axios.put(`${baseUrl}/events/${eventId}`, {description: editDescription})
+      }
     } catch (err) {
       console.error(err.mensagem);
     }
@@ -52,10 +64,11 @@ function App() {
           <form onSubmit={handleSubmit}>
             <label htmlFor="description">Description</label>
               <input
-                onChange={handleChange}
+                onChange={(e) => handleChange(e, 'description')}
                 type="text"
                 name='description'
                 id='description'
+                placeholder='Describe the event'
                 value={description}
               />
               <button type='submit'>Submit</button>
@@ -64,12 +77,28 @@ function App() {
         <section>
           <ul>
             {eventsList.map(event => {
-              return (
+              if (eventId===event.id) {
+                return(
+                  <form onSubmit={handleSubmit} key={event.id}>
+                    <input
+                      onChange={(e) => handleChange(e, 'edit')}
+                      type="text"
+                      name='editDescription'
+                      id='editDescription'
+                      value={editDescription}
+                    />
+                    <button type='submit'>Submit</button>
+                  </form>
+                )
+              } else {
+                return (
                   <li style={{display: "flex"}} key={event.id}>
                     {event.description}
+                    <button onClick={() => toggleEdit(event)}>Edit</button>
                     <button onClick={() => handleDelete(event.id)}>X</button>
                   </li>
-              )
+                )
+             }
             })}
           </ul>
         </section>
